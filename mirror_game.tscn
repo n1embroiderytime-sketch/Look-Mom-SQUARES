@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://do0136veypqyi"]
+
+[ext_resource type="Script" uid="uid://c7v6h26rqdo46" path="res://mirror_mode.gd" id="1_p4s1l"]
+[ext_resource type="Script" uid="uid://d2ib4hlgfelna" path="res://LevelData.gd" id="2_kegut"]
+
+[node name="MainGame" type="Node2D"]
+script = ExtResource("1_p4s1l")
+game_levels = Array[ExtResource("2_kegut")]([null])

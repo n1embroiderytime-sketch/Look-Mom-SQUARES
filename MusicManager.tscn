@@ -1,0 +1,12 @@
+[gd_scene load_steps=4 format=3 uid="uid://dq1flc5jd3fnx"]
+
+[ext_resource type="Script" uid="uid://w0f2kukhbnay" path="res://musicmanager.gd" id="1_y4juv"]
+[ext_resource type="AudioStream" uid="uid://bnp8b327hpdrc" path="res://Audio/Pixel River.ogg" id="2_5vx3j"]
+[ext_resource type="AudioStream" uid="uid://calam4okkba4u" path="res://Audio/Constellation.ogg" id="4_wavqy"]
+
+[node name="MusicManager" type="Node2D"]
+script = ExtResource("1_y4juv")
+playlist = Array[AudioStream]([ExtResource("4_wavqy"), ExtResource("4_wavqy")])
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_5vx3j")

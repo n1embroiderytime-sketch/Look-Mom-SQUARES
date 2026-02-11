@@ -1,0 +1,121 @@
+[gd_scene load_steps=14 format=3 uid="uid://c61nul2tyd55v"]
+
+[ext_resource type="Script" uid="uid://7h41ri5qtovv" path="res://main_menu.gd" id="1_i26rj"]
+[ext_resource type="FontFile" uid="uid://c2b52yvaanjc7" path="res://Fonts/Kenney Mini Square Mono.ttf" id="2_eiy7p"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h7a2f"]
+bg_color = Color(18.892157, 18.892157, 18.892157, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_iwfq2"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7r1g0"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cqjrg"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eiy7p"]
+bg_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e2xy7"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fimr5"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u7cqb"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qoqlk"]
+bg_color = Color(17.765293, 18.892157, 18.892157, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_afec1"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_31qfy"]
+bg_color = Color(0, 0, 0, 1)
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_i26rj")
+
+[node name="MenuContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -48.0
+offset_top = -33.0
+offset_right = 48.0
+offset_bottom = 33.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 30
+
+[node name="LogoContainer" type="VBoxContainer" parent="MenuContainer"]
+layout_mode = 2
+theme_override_constants/separation = -35
+alignment = 1
+
+[node name="Label" type="Label" parent="MenuContainer/LogoContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_eiy7p")
+theme_override_font_sizes/font_size = 70
+text = "LOOK"
+
+[node name="Label2" type="Label" parent="MenuContainer/LogoContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_eiy7p")
+theme_override_font_sizes/font_size = 70
+text = "MOM"
+
+[node name="Label3" type="Label" parent="MenuContainer/LogoContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_eiy7p")
+theme_override_font_sizes/font_size = 70
+text = "SQUARES!"
+
+[node name="BtnClassic" type="Button" parent="MenuContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_eiy7p")
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_h7a2f")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_iwfq2")
+theme_override_styles/hover = SubResource("StyleBoxFlat_7r1g0")
+theme_override_styles/focus = SubResource("StyleBoxFlat_cqjrg")
+text = "PLAY CLASSIC"
+
+[node name="BtnMirror" type="Button" parent="MenuContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_eiy7p")
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_eiy7p")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_e2xy7")
+theme_override_styles/hover = SubResource("StyleBoxFlat_fimr5")
+theme_override_styles/focus = SubResource("StyleBoxFlat_u7cqb")
+text = "PLAY MIRROR"
+
+[node name="BtnDailyC" type="Button" parent="MenuContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_pressed_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_eiy7p")
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_qoqlk")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_afec1")
+theme_override_styles/hover = SubResource("StyleBoxFlat_31qfy")
+text = "DAILY
+CHALLENGES"

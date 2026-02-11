@@ -1,0 +1,129 @@
+[gd_scene load_steps=10 format=3 uid="uid://bxik04jeq87g4"]
+
+[ext_resource type="Script" uid="uid://16okybqcsbqy" path="res://level_select.gd" id="1_ardn0"]
+[ext_resource type="Resource" uid="uid://dymai6sqjh4o1" path="res://Gamemodes/Classic/Level010.tres" id="2_b3bbf"]
+[ext_resource type="FontFile" uid="uid://c2b52yvaanjc7" path="res://Fonts/Kenney Mini Square Mono.ttf" id="2_q3t17"]
+[ext_resource type="Resource" uid="uid://bkjqekurq37g8" path="res://Gamemodes/Classic/Level011.tres" id="3_41uxa"]
+[ext_resource type="Resource" uid="uid://d1axqp626o2xc" path="res://Gamemodes/Classic/Level012.tres" id="4_hvlej"]
+[ext_resource type="Resource" uid="uid://da47pol1fwenb" path="res://Gamemodes/Classic/Level013.tres" id="5_il1aw"]
+[ext_resource type="Resource" uid="uid://b03yvjfgf6mdh" path="res://Gamemodes/Classic/Level014.tres" id="6_w5tpn"]
+[ext_resource type="Resource" uid="uid://bbrneg8cocsiw" path="res://Gamemodes/Classic/Level015.tres" id="7_b3bbf"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w5tpn"]
+bg_color = Color(0, 0, 0, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 1)
+
+[node name="LevelSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ardn0")
+all_levels = Array[Resource]([ExtResource("2_b3bbf"), ExtResource("3_41uxa"), ExtResource("4_hvlej"), ExtResource("5_il1aw"), ExtResource("6_w5tpn"), ExtResource("7_b3bbf"), null])
+metadata/_edit_horizontal_guides_ = [313.0, 543.0]
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="MainMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="LayoutList" type="VBoxContainer" parent="MainMargin"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="HeaderArea" type="VBoxContainer" parent="MainMargin/LayoutList"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MainMargin/LayoutList/HeaderArea"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="BtnBack" type="Button" parent="MainMargin/LayoutList/HeaderArea/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("2_q3t17")
+theme_override_styles/hover = SubResource("StyleBoxFlat_w5tpn")
+text = " << "
+
+[node name="Label" type="Label" parent="MainMargin/LayoutList/HeaderArea/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_q3t17")
+theme_override_font_sizes/font_size = 35
+text = "SELECT LEVEL"
+horizontal_alignment = 1
+
+[node name="SectionEndless" type="VBoxContainer" parent="MainMargin/LayoutList"]
+layout_mode = 2
+
+[node name="TitleEndless" type="Label" parent="MainMargin/LayoutList/SectionEndless"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_q3t17")
+theme_override_font_sizes/font_size = 20
+text = "ENDLESS"
+horizontal_alignment = 1
+
+[node name="ContainerEndless" type="MarginContainer" parent="MainMargin/LayoutList/SectionEndless"]
+layout_mode = 2
+
+[node name="LevelRow" type="HBoxContainer" parent="MainMargin/LayoutList/SectionEndless/ContainerEndless"]
+layout_mode = 2
+
+[node name="SectionClassic" type="VBoxContainer" parent="MainMargin/LayoutList"]
+layout_mode = 2
+
+[node name="TitleClassic" type="Label" parent="MainMargin/LayoutList/SectionClassic"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_q3t17")
+theme_override_font_sizes/font_size = 20
+text = "CLASSIC"
+
+[node name="ContainerClassic" type="ScrollContainer" parent="MainMargin/LayoutList/SectionClassic"]
+layout_mode = 2
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="LevelRow" type="HBoxContainer" parent="MainMargin/LayoutList/SectionClassic/ContainerClassic"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="SectionMirror" type="VBoxContainer" parent="MainMargin/LayoutList"]
+layout_mode = 2
+
+[node name="TitleMirror" type="Label" parent="MainMargin/LayoutList/SectionMirror"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_q3t17")
+theme_override_font_sizes/font_size = 20
+text = "MIRROR"
+
+[node name="ContainerMirror" type="CenterContainer" parent="MainMargin/LayoutList/SectionMirror"]
+layout_mode = 2
+
+[node name="LevelRow" type="HBoxContainer" parent="MainMargin/LayoutList/SectionMirror/ContainerMirror"]
+layout_mode = 2
+theme_override_constants/separation = 20

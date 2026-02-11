@@ -1,0 +1,23 @@
+[gd_scene load_steps=6 format=4 uid="uid://b0t3020al6nnc"]
+
+[ext_resource type="Script" uid="uid://crdphgg71wkrh" path="res://DesignerTool.gd" id="1_0b4d6"]
+[ext_resource type="Texture2D" uid="uid://dadh0as1ys2gr" path="res://tiles.svg" id="2_xmlt8"]
+[ext_resource type="Resource" uid="uid://bcs43v8duw8xa" path="res://Gamemodes/Classic/Level002.tres" id="3_ejup0"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ejup0"]
+texture = ExtResource("2_xmlt8")
+texture_region_size = Vector2i(40, 40)
+0:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_k5u5l"]
+tile_size = Vector2i(40, 40)
+sources/0 = SubResource("TileSetAtlasSource_ejup0")
+
+[node name="LevelDesigner" type="Node2D"]
+script = ExtResource("1_0b4d6")
+
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
+tile_map_data = PackedByteArray("AAD+////AAAAAAAAAAD+/wAAAAAAAAAAAAABAP//AAAAAAAAAAABAAAAAAAAAAAAAAD9/wAAAAAAAAAAAAD+/wEAAAAAAAAAAAABAAEAAAAAAAAAAAACAAAAAAAAAAAAAAD///7/AAAAAAAAAAD///3/AAAAAAAAAAAAAP3/AAAAAAAAAAAAAP7/AAAAAAAAAAA=")
+tile_set = SubResource("TileSet_k5u5l")
+script = ExtResource("1_0b4d6")
+game_levels = Array[Resource]([ExtResource("3_ejup0")])

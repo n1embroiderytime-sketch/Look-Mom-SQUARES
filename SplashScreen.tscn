@@ -1,0 +1,55 @@
+[gd_scene load_steps=4 format=3 uid="uid://ye87d7fer226"]
+
+[ext_resource type="Script" uid="uid://sildthmtnhkv" path="res://SplashScreen.gd" id="1_onsdr"]
+[ext_resource type="FontFile" uid="uid://c2b52yvaanjc7" path="res://Fonts/Kenney Mini Square Mono.ttf" id="2_ja1jw"]
+[ext_resource type="AudioStream" uid="uid://b42olgr5yhvk2" path="res://Audio/confirmation_003.ogg" id="3_pq256"]
+
+[node name="SplashScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_onsdr")
+
+[node name="SfxSmash" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_pq256")
+
+[node name="DebrisContainer" type="Node2D" parent="."]
+
+[node name="LogoContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = -35
+alignment = 1
+
+[node name="Label" type="Label" parent="LogoContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ja1jw")
+theme_override_font_sizes/font_size = 70
+text = "LOOK"
+
+[node name="Label2" type="Label" parent="LogoContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ja1jw")
+theme_override_font_sizes/font_size = 70
+text = "MOM"
+
+[node name="Label3" type="Label" parent="LogoContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ja1jw")
+theme_override_font_sizes/font_size = 70
+text = "SQUARES!"
