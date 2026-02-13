@@ -126,6 +126,7 @@ var piece_queue_locked = []
 var piece_bag = []
 var next_piece_baseline_score = -9999
 var sequence_queue_index = 0
+var last_spawned_piece_type = ""
 
 # Visual State
 var flash_intensity = 0.0
@@ -401,6 +402,7 @@ func init_level(idx):
 	level_index = idx
 	sequence_index = 0
 	sequence_queue_index = 0
+	last_spawned_piece_type = ""
 	lives = 3 
 	hint_active = false
 	level_completed = false
@@ -463,6 +465,7 @@ func spawn_piece():
 	solver_log("spawn piece => %s | queue_after_pop=%s" % [next_type, str(piece_queue)])
 		
 	hint_active = false
+	last_spawned_piece_type = next_type
 	piece_mover.spawn_piece(next_type, SHAPES, COLS)
 	falling_piece = piece_mover.falling_piece
 	lock_timer = piece_mover.lock_timer
@@ -517,6 +520,7 @@ func land_piece():
 	if tutorial_active:
 		tutorial_piece_count += 1
 
+	enforce_next_piece_quality()
 	adapt_buffer_after_placement()
 	check_victory_100_percent() 
 	spawn_piece()
@@ -669,19 +673,44 @@ func get_piece_debug_snapshot(piece_type):
 	var exact_fit = can_piece_fit_in_multiverse(matrix)
 	return {"type": piece_type, "potential": potential, "exact_fit": exact_fit}
 
+func get_piece_diversity_penalty(piece_type):
+	var penalty = 0
+	if piece_type == last_spawned_piece_type:
+		penalty += 2
+	for queued in piece_queue:
+		if queued == piece_type:
+			penalty += 1
+	return penalty
+
+func should_prefer_piece(candidate_score, candidate_penalty, best_score, best_penalty, prefer_helpful):
+	if prefer_helpful:
+		if candidate_score > best_score:
+			return true
+		if candidate_score == best_score and candidate_penalty < best_penalty:
+			return true
+		return false
+	if candidate_score < best_score:
+		return true
+	if candidate_score == best_score and candidate_penalty > best_penalty:
+		return true
+	return false
+
 func get_best_piece_global():
 	var best_type = ""
 	var best_score = -9999
+	var best_penalty = 9999
 	for piece_type in SHAPES.keys():
 		if not can_piece_fit_in_multiverse(SHAPES[piece_type]):
 			continue
 		var score = evaluate_piece_potential(SHAPES[piece_type])
-		if score > best_score:
+		var penalty = get_piece_diversity_penalty(piece_type)
+		if should_prefer_piece(score, penalty, best_score, best_penalty, true):
 			best_score = score
 			best_type = piece_type
+			best_penalty = penalty
 	if solver_debug_logs:
-		solver_log("global best candidate = %s (score=%s)" % [best_type, str(best_score)])
-	return {"type": best_type, "score": best_score}
+		solver_log("global best candidate = %s (score=%s, penalty=%s)" % [best_type, str(best_score), str(best_penalty)])
+	return {"type": best_type, "score": best_score, "penalty": best_penalty}
 
 func pick_piece_from_bag(prefer_helpful):
 	if piece_bag.is_empty():
@@ -693,6 +722,7 @@ func pick_piece_from_bag(prefer_helpful):
 	candidates.shuffle()
 	var selected = ""
 	var selected_score = -9999
+	var selected_penalty = 9999
 	var found_valid = false
 
 	for piece_type in candidates:
@@ -702,19 +732,17 @@ func pick_piece_from_bag(prefer_helpful):
 				solver_log("bag reject %s (no exact-fit in any core rotation)" % piece_type)
 			continue
 		var score = evaluate_piece_potential(SHAPES[piece_type])
+		var penalty = get_piece_diversity_penalty(piece_type)
 		if not found_valid:
 			selected = piece_type
 			selected_score = score
+			selected_penalty = penalty
 			found_valid = true
 			continue
-		if prefer_helpful:
-			if score > selected_score:
-				selected = piece_type
-				selected_score = score
-		else:
-			if score < selected_score:
-				selected = piece_type
-				selected_score = score
+		if should_prefer_piece(score, penalty, selected_score, selected_penalty, prefer_helpful):
+			selected = piece_type
+			selected_score = score
+			selected_penalty = penalty
 
 	# Safety override: if bag constraints would make the run unwinnable,
 	# prefer the globally best piece even if it is outside the current bag.
@@ -727,6 +755,7 @@ func pick_piece_from_bag(prefer_helpful):
 			if should_override:
 				selected = global_best.type
 				selected_score = global_best.score
+				selected_penalty = global_best.penalty
 
 	if selected == "":
 		if solver_debug_logs:
@@ -736,7 +765,7 @@ func pick_piece_from_bag(prefer_helpful):
 	if piece_bag.has(selected):
 		piece_bag.erase(selected)
 	if solver_debug_logs:
-		solver_log("bag pick => %s (score=%s, helpful=%s, remaining_bag=%s)" % [selected, str(selected_score), str(prefer_helpful), str(piece_bag)])
+		solver_log("bag pick => %s (score=%s, penalty=%s, helpful=%s, remaining_bag=%s)" % [selected, str(selected_score), str(selected_penalty), str(prefer_helpful), str(piece_bag)])
 	return selected
 
 func ensure_piece_queue():
@@ -755,6 +784,39 @@ func ensure_piece_queue():
 		piece_queue_locked.append(is_locked)
 		if solver_debug_logs:
 			solver_log("queue append -> %s (locked=%s) queue=%s" % [next_piece, str(is_locked), str(piece_queue)])
+
+func enforce_next_piece_quality():
+	if is_scripted_level():
+		return
+	if piece_queue.is_empty():
+		return
+	if piece_queue_locked.size() > 0 and piece_queue_locked[0]:
+		return
+
+	var current_next = piece_queue[0]
+	var current_fit = can_piece_fit_in_multiverse(SHAPES[current_next])
+	var current_score = evaluate_piece_potential(SHAPES[current_next]) if current_fit else -9999
+	var global_best = get_best_piece_global()
+
+	var must_replace = not current_fit
+	if global_best.type != "" and global_best.type != current_next:
+		if global_best.score - current_score >= SOLVER_BAG_OVERRIDE_MARGIN:
+			must_replace = true
+
+	if not must_replace:
+		return
+	if global_best.type == "":
+		solver_log("next piece quality check: no valid replacement found")
+		return
+
+	var previous_next = piece_queue[0]
+	piece_queue[0] = global_best.type
+	if piece_bag.has(global_best.type):
+		piece_bag.erase(global_best.type)
+	if previous_next != global_best.type:
+		piece_bag.append(previous_next)
+		piece_bag.shuffle()
+	solver_log("next piece replaced: %s -> %s | queue=%s" % [previous_next, global_best.type, str(piece_queue)])
 
 func adapt_buffer_after_placement():
 	# Piece B is at index 0, Piece C (buffer) is index 1.
