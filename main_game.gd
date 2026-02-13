@@ -120,8 +120,10 @@ var hint_target_x = 0
 var hint_target_matrix = [] 
 var hint_ghost_coords = []
 var piece_queue = []
+var piece_queue_locked = []
 var piece_bag = []
 var next_piece_baseline_score = -9999
+var sequence_queue_index = 0
 
 # Visual State
 var flash_intensity = 0.0
@@ -396,6 +398,7 @@ func init_level(idx):
 	position = Vector2.ZERO
 	level_index = idx
 	sequence_index = 0
+	sequence_queue_index = 0
 	lives = 3 
 	hint_active = false
 	level_completed = false
@@ -452,6 +455,8 @@ func spawn_piece():
 		return
 
 	var next_type = piece_queue.pop_front()
+	if not piece_queue_locked.is_empty():
+		piece_queue_locked.pop_front()
 		
 	hint_active = false
 	piece_mover.spawn_piece(next_type, SHAPES, COLS)
@@ -615,12 +620,35 @@ func calculate_hint_move():
 # [AI] "SEE THE FUTURE" LOGIC
 func reset_piece_pipeline():
 	piece_queue.clear()
+	piece_queue_locked.clear()
 	piece_bag.clear()
 	next_piece_baseline_score = -9999
+	sequence_queue_index = 0
 
 func refill_piece_bag():
 	piece_bag = SHAPES.keys()
 	piece_bag.shuffle()
+
+func get_level_sequence():
+	if level_index < 0 or level_index >= game_levels.size():
+		return []
+	var level_data = game_levels[level_index]
+	if level_data == null:
+		return []
+	var seq = level_data.get("sequence")
+	if seq == null:
+		return []
+	return seq
+
+func get_next_scripted_piece():
+	var level_sequence = get_level_sequence()
+	if sequence_queue_index >= level_sequence.size():
+		return ""
+	var scripted_piece = level_sequence[sequence_queue_index]
+	sequence_queue_index += 1
+	if not SHAPES.has(scripted_piece):
+		return ""
+	return scripted_piece
 
 func pick_piece_from_bag(prefer_helpful):
 	if piece_bag.is_empty():
@@ -649,14 +677,24 @@ func pick_piece_from_bag(prefer_helpful):
 
 func ensure_piece_queue():
 	while piece_queue.size() < PIECE_QUEUE_SIZE:
-		var next_piece = pick_piece_from_bag(true)
+		var next_piece = get_next_scripted_piece()
+		var is_locked = false
+		if next_piece != "":
+			is_locked = true
+		else:
+			next_piece = pick_piece_from_bag(true)
 		if next_piece == "":
 			break
 		piece_queue.append(next_piece)
+		piece_queue_locked.append(is_locked)
 
 func adapt_buffer_after_placement():
 	# Piece B is at index 0, Piece C (buffer) is index 1.
 	if piece_queue.size() < 2:
+		return
+	if piece_queue_locked.size() < 2:
+		return
+	if piece_queue_locked[1]:
 		return
 	if next_piece_baseline_score <= -9999:
 		return
