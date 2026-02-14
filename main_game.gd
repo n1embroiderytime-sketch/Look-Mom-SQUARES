@@ -1229,6 +1229,12 @@ func spawn_floating_text(pos, value):
 # ==============================================================================
 # DRAWING (Rendering the Game)
 # ==============================================================================
+func get_piece_landing_y(start_x, start_y, matrix):
+	var ghost_y = floor(start_y)
+	while not will_collide(start_x, ghost_y + 1, matrix):
+		ghost_y += 1
+	return ghost_y
+
 func _draw():
 	var vp_size = get_viewport_rect().size
 	# 1. Background
@@ -1284,9 +1290,22 @@ func _draw():
 			draw_rect(Rect2(draw_x, draw_y, GRID_SIZE, GRID_SIZE), Color(dynamic_ghost_col.r, dynamic_ghost_col.g, dynamic_ghost_col.b, 0.3), true)
 			draw_rect(Rect2(draw_x, draw_y, GRID_SIZE, GRID_SIZE), dynamic_ghost_col, false, 2.0)
 
-	# 6. Draw Falling Piece
+	# 6. Draw Falling Piece + Ghost Projection
 	if falling_piece != null:
-		var py = falling_piece.y; var px = falling_piece.x
+		var px = falling_piece.x
+		var py = falling_piece.y
+		var ghost_y = get_piece_landing_y(px, py, falling_piece.matrix)
+
+		# Ghost projection (where piece will land)
+		if control_mode == "PIECE" and ghost_y >= py:
+			for r in range(falling_piece.matrix.size()):
+				for c in range(falling_piece.matrix[r].size()):
+					if falling_piece.matrix[r][c] == 1:
+						var g_x = OFFSET_X + ((px + c) * GRID_SIZE)
+						var g_y = (ghost_y + r) * GRID_SIZE
+						draw_rect(Rect2(g_x + 6, g_y + 6, GRID_SIZE - 12, GRID_SIZE - 12), Color(1, 1, 1, 0.08), true)
+						draw_rect(Rect2(g_x + 6, g_y + 6, GRID_SIZE - 12, GRID_SIZE - 12), Color(1, 1, 1, 0.25), false, 2.0)
+
 		for r in range(falling_piece.matrix.size()):
 			for c in range(falling_piece.matrix[r].size()):
 				if falling_piece.matrix[r][c] == 1:
@@ -1399,6 +1418,7 @@ func draw_tutorial_overlay(vp_size):
 	
 	var instruction_text = ""
 	var hand_pos = center
+	var hand_drop_offset = Vector2(0, GRID_SIZE * 3)
 	# Animation cycle (2.5 seconds loop)
 	var anim_cycle = fmod(tutorial_hand_animation_timer, 2.5)
 	var hand_scale = 1.0
@@ -1436,10 +1456,13 @@ func draw_tutorial_overlay(vp_size):
 		if anim_cycle > 1.0 and anim_cycle < 1.2:
 			hand_scale = 0.8; hand_color = Color(0.8,0.8,0.8,1) # Tap
 	
+	hand_pos += hand_drop_offset
 	draw_square_hand_icon(hand_pos, hand_color, hand_scale)
-	
-	var text_pos = center - Vector2(0, 100)
-	draw_string(font_to_use, text_pos - Vector2(100, 0), instruction_text, HORIZONTAL_ALIGNMENT_CENTER, 200, 32, Color.WHITE)
+
+	var tutorial_font_size = 24
+	var max_text_width = vp_size.x - 40
+	var text_pos = Vector2(20, center.y - 60)
+	draw_string(font_to_use, text_pos, instruction_text, HORIZONTAL_ALIGNMENT_CENTER, max_text_width, tutorial_font_size, Color.WHITE)
 
 func draw_square_hand_icon(pos, color, scale_mod=1.0):
 	# Pixel art style "Mitten" cursor using rects
