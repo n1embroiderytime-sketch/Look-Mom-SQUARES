@@ -43,7 +43,7 @@ var OFFSET_X = 0.0
 @export var game_levels: Array[Resource] = [] # Drag & Drop Levels here in Editor
 @export var meta_target_level_index: int = -1 
 @export var meta_ghost_duration: float = 4.0
-@export var solver_debug_logs: bool = true
+@export var solver_debug_logs: bool = false
 
 # ==============================================================================
 # [VISUALS] COLORS & THEMES
@@ -470,10 +470,6 @@ func spawn_piece():
 	falling_piece = piece_mover.falling_piece
 	lock_timer = piece_mover.lock_timer
 	ensure_piece_queue()
-	if piece_queue.is_empty():
-		next_piece_baseline_score = -9999
-	else:
-		next_piece_baseline_score = evaluate_piece_potential(SHAPES[piece_queue[0]])
 	trigger_spawn_burst()
 	
 	# [TUTORIAL] Reset tutorial state for the next piece
@@ -520,8 +516,6 @@ func land_piece():
 	if tutorial_active:
 		tutorial_piece_count += 1
 
-	enforce_next_piece_quality()
-	adapt_buffer_after_placement()
 	check_victory_100_percent() 
 	spawn_piece()
 	trigger_spawn_burst()
@@ -771,13 +765,9 @@ func pick_piece_from_bag(prefer_helpful):
 func ensure_piece_queue():
 	while piece_queue.size() < PIECE_QUEUE_SIZE:
 		var next_piece = get_next_scripted_piece()
-		var is_locked = false
-		if next_piece != "":
-			is_locked = true
-		else:
-			if is_scripted_level():
-				break
-			next_piece = pick_piece_from_bag(true)
+		var is_locked = true
+		# Classic mode is strictly sequence-driven.
+		# If the sequence is exhausted, do not generate fallback pieces.
 		if next_piece == "":
 			break
 		piece_queue.append(next_piece)
