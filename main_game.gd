@@ -10,7 +10,7 @@ const PieceMoverScript = preload("res://PieceMover.gd")
 var tutorial_active = false
 # Current state of the tutorial lesson (INACTIVE, WAITING, or SHOWING)
 var tutorial_state = "INACTIVE" 
-# Which lesson are we on? (0 = Move, 1 = Rotate, 2 = Switch/Core)
+# Which lesson are we on? (0 = Move, 1 = Rotate Piece, 2 = Switch + Rotate Core)
 var tutorial_piece_count = 0 
 # Timer to animate the hand icon
 var tutorial_hand_animation_timer = 0.0
@@ -350,7 +350,9 @@ func handle_move(dir):
 	
 	# [TUTORIAL] Unlock if player follows "Move" instruction
 	if tutorial_active and tutorial_state == "SHOWING_PROMPT" and tutorial_piece_count == 0:
-		tutorial_state = "INACTIVE" # Resume gravity
+		tutorial_piece_count = 1
+		tutorial_state = "WAITING_FOR_VIEW"
+		tutorial_hand_animation_timer = 0.0
 	
 	if piece_mover.move_horizontal(dir, grid_board):
 		falling_piece = piece_mover.falling_piece
@@ -359,12 +361,16 @@ func handle_move(dir):
 func handle_rotate(dir):
 	# [TUTORIAL] Unlock if player follows "Rotate" instruction
 	if tutorial_active and tutorial_state == "SHOWING_PROMPT" and tutorial_piece_count == 1:
-		tutorial_state = "INACTIVE"
+		tutorial_piece_count = 2
+		tutorial_state = "WAITING_FOR_VIEW"
+		tutorial_hand_animation_timer = 0.0
 		
 	# [TUTORIAL] Unlock if player rotates CORE (Step 3)
 	if tutorial_active and tutorial_state == "SHOWING_PROMPT" and tutorial_piece_count == 2:
 		if control_mode == "CORE":
+			tutorial_piece_count = 3
 			tutorial_state = "INACTIVE"
+			tutorial_active = false
 		else:
 			return # Block rotation if they haven't switched to Core yet
 
@@ -376,6 +382,10 @@ func handle_rotate(dir):
 			lock_timer = piece_mover.lock_timer
 
 func switch_control():
+	# During first two lessons, block Core switch entirely.
+	if tutorial_active and tutorial_piece_count < 2:
+		return
+
 	# [TUTORIAL] Handle "Switch" instruction
 	if tutorial_active and tutorial_state == "SHOWING_PROMPT" and tutorial_piece_count == 2:
 		if control_mode == "PIECE":
@@ -512,10 +522,6 @@ func land_piece():
 	piece_mover.falling_piece = null
 	sequence_index += 1 
 	
-	# [TUTORIAL] Advance to next lesson
-	if tutorial_active:
-		tutorial_piece_count += 1
-
 	check_victory_100_percent() 
 	spawn_piece()
 	trigger_spawn_burst()
