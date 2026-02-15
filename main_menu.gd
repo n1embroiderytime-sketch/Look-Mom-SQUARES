@@ -43,6 +43,7 @@ func _ready():
 		
 	# 3. Check Unlocks
 	check_unlocks()
+	update_endless_high_score_label()
 	
 	# 4. [NEW] FILL THE SCREEN IMMEDIATELY
 	# Instead of just 5 pieces, we loop through the entire height of the screen
@@ -146,3 +147,21 @@ func check_unlocks():
 
 func go_to_scene(path):
 	get_tree().change_scene_to_file(path)
+
+
+func update_endless_high_score_label():
+	var label = get_node_or_null("MenuContainer/LabelEndlessHigh")
+	if label == null:
+		label = Label.new()
+		label.name = "LabelEndlessHigh"
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		$MenuContainer.add_child(label)
+		$MenuContainer.move_child(label, 1)
+
+	label.text = "ENDLESS HI: " + str(Global.endless_high_score)
+	var source_font = $MenuContainer/BtnPlay.get_theme_font("font")
+	if source_font:
+		label.add_theme_font_override("font", source_font)
+	label.add_theme_font_size_override("font_size", 26)
+	label.modulate = Color("88c0d0")

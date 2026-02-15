@@ -13,3 +13,7 @@ game_levels = Array[Resource]([ExtResource("2_2pltu"), ExtResource("3_f52ns"), E
 
 [node name="SfxConnect" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("13_krmtw")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(270, 480)
+
