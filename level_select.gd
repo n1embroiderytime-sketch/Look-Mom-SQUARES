@@ -1,5 +1,7 @@
 extends Control
 
+const MENU_FONT_PATH = "res://Fonts/Kenney Mini Square Mono.ttf"
+
 @export var all_levels: Array[Resource] = []
 
 @onready var grid_classic = $MainMargin/LayoutList/SectionClassic/ContainerClassic/LevelRow
@@ -32,6 +34,8 @@ func setup_endless_mode():
 	var save_id = 999
 	var display_id = 0
 	btn_endless.setup(display_id, endless_data, false, 0, true, Global.endless_high_score)
+	if ResourceLoader.exists(MENU_FONT_PATH):
+		btn_endless.add_theme_font_override("font", load(MENU_FONT_PATH))
 
 	btn_endless.pressed.connect(func():
 		Global.selected_level = save_id

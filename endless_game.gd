@@ -347,31 +347,67 @@ func check_gold_squares():
 func check_full_lines():
 	var limit = MAX_RADIUS_BEFORE_RESET
 	var filled = {}
+	var rows = {}
+	var cols = {}
 	for b in cluster:
-		filled["%d,%d" % [int(b.x), int(b.y)]] = b
+		var bx = int(b.x)
+		var by = int(b.y)
+		if bx < -limit or bx >= limit or by < -limit or by >= limit:
+			continue
+		var key = "%d,%d" % [bx, by]
+		filled[key] = b
+		if not rows.has(by):
+			rows[by] = []
+		rows[by].append(bx)
+		if not cols.has(bx):
+			cols[bx] = []
+		cols[bx].append(by)
 
 	var became_gold = false
-	for y in range(-limit, limit):
-		var full_row = true
-		for x in range(-limit, limit):
-			if not filled.has("%d,%d" % [x, y]):
-				full_row = false
-				break
-		if full_row:
-			for x in range(-limit, limit):
+
+	for y in rows.keys():
+		var xs = rows[y]
+		xs.sort()
+		if xs.size() < 4:
+			continue
+		var run = [xs[0]]
+		for i in range(1, xs.size()):
+			if xs[i] == xs[i - 1] + 1:
+				run.append(xs[i])
+			else:
+				if run.size() >= 4:
+					for x in run:
+						var block = filled["%d,%d" % [x, y]]
+						if not block.get("is_gold", false):
+							block["is_gold"] = true
+							became_gold = true
+				run = [xs[i]]
+		if run.size() >= 4:
+			for x in run:
 				var block = filled["%d,%d" % [x, y]]
 				if not block.get("is_gold", false):
 					block["is_gold"] = true
 					became_gold = true
 
-	for x in range(-limit, limit):
-		var full_col = true
-		for y in range(-limit, limit):
-			if not filled.has("%d,%d" % [x, y]):
-				full_col = false
-				break
-		if full_col:
-			for y in range(-limit, limit):
+	for x in cols.keys():
+		var ys = cols[x]
+		ys.sort()
+		if ys.size() < 4:
+			continue
+		var run = [ys[0]]
+		for i in range(1, ys.size()):
+			if ys[i] == ys[i - 1] + 1:
+				run.append(ys[i])
+			else:
+				if run.size() >= 4:
+					for y in run:
+						var block = filled["%d,%d" % [x, y]]
+						if not block.get("is_gold", false):
+							block["is_gold"] = true
+							became_gold = true
+				run = [ys[i]]
+		if run.size() >= 4:
+			for y in run:
 				var block = filled["%d,%d" % [x, y]]
 				if not block.get("is_gold", false):
 					block["is_gold"] = true
@@ -382,6 +418,7 @@ func check_full_lines():
 		trigger_vfx("GOLD_COMPLETE")
 		trigger_score_pulse()
 		commit_endless_progress()
+
 
 func get_block_at_rel(rx, ry):
 	for b in cluster:

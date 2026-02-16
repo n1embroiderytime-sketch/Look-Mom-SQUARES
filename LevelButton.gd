@@ -75,7 +75,13 @@ func _draw():
 	if not is_locked:
 		if endless_mode:
 			var score_label = "HI " + str(endless_high_score)
-			draw_string(ThemeDB.fallback_font, Vector2(12, size.y - 12), score_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("88c0d0"))
+			var score_font = get_theme_font("font")
+			if score_font == null:
+				score_font = ThemeDB.fallback_font
+			var score_size = 18
+			var score_width = score_font.get_string_size(score_label, HORIZONTAL_ALIGNMENT_LEFT, -1, score_size).x
+			var score_x = (size.x - score_width) / 2.0
+			draw_string(score_font, Vector2(score_x, size.y - 12), score_label, HORIZONTAL_ALIGNMENT_LEFT, -1, score_size, Color("88c0d0"))
 		else:
 			var star_size = 12
 			var gap = 4
