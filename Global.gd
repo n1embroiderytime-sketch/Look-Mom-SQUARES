@@ -18,6 +18,8 @@ var level_stars = {}
 # Endless progression
 var endless_high_score = 0
 var endless_current_score = 0
+var endless_has_saved_run = false
+var endless_run_state = {}
 
 const SAVE_PATH = "user://lookmom_save.json"
 
@@ -29,7 +31,9 @@ func save_game():
 		"highest_level_reached": highest_level_reached,
 		"level_stars": level_stars,
 		"endless_high_score": endless_high_score,
-		"endless_current_score": endless_current_score
+		"endless_current_score": endless_current_score,
+		"endless_has_saved_run": endless_has_saved_run,
+		"endless_run_state": endless_run_state
 	}
 
 	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -55,3 +59,7 @@ func load_game():
 				endless_high_score = int(data["endless_high_score"])
 			if "endless_current_score" in data:
 				endless_current_score = int(data["endless_current_score"])
+			if "endless_has_saved_run" in data:
+				endless_has_saved_run = bool(data["endless_has_saved_run"])
+			if "endless_run_state" in data and data["endless_run_state"] is Dictionary:
+				endless_run_state = data["endless_run_state"].duplicate(true)

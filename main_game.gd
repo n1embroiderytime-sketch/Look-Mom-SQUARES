@@ -303,7 +303,12 @@ func _input(event):
 		if event.is_action("ui_down"): hard_drop(); get_viewport().set_input_as_handled()
 		if event.keycode == KEY_ESCAPE: toggle_pause()
 
-	# 4. TOUCH INPUTS
+	# 4. POINTER INPUTS (Mouse + Touch)
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if btn_pause_rect.has_point(event.position):
+			toggle_pause()
+			return
+
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			touch_start_pos = event.position
