@@ -307,6 +307,10 @@ func spawn_trim_particles(pos):
 func check_gold_squares():
 	var max_checked_size = MAX_RADIUS_BEFORE_RESET * 2
 	var newly_gold = false
+
+	var line_limit = MAX_RADIUS_BEFORE_RESET
+	var line_min = -line_limit
+	var line_max = line_limit - 1
 	for size in range(4, max_checked_size + 1, 2): 
 		var half = size / 2
 		var min_val = -half; var max_val = half - 1
@@ -328,6 +332,48 @@ func check_gold_squares():
 					var center_x = vp_size.x / 2.0
 					var world_x = center_x + (b.x * GRID_SIZE) + (GRID_SIZE/2.0)
 					var world_y = ((CENTER_Y + b.y) * GRID_SIZE) + (GRID_SIZE/2.0)
+					spawn_floating_text(Vector2(world_x, world_y), 500)
+
+	for y in range(line_min, line_max + 1):
+		var is_perfect_row = true
+		var row_blocks = []
+		for x in range(line_min, line_max + 1):
+			var row_block = get_block_at_rel(x, y)
+			if row_block == null:
+				is_perfect_row = false
+				break
+			row_blocks.append(row_block)
+		if is_perfect_row:
+			for b in row_blocks:
+				if not b.get("is_gold", false):
+					b["is_gold"] = true
+					newly_gold = true
+					score += 500
+					var vp_size = get_viewport_rect().size
+					var center_x = vp_size.x / 2.0
+					var world_x = center_x + (b.x * GRID_SIZE) + (GRID_SIZE / 2.0)
+					var world_y = ((CENTER_Y + b.y) * GRID_SIZE) + (GRID_SIZE / 2.0)
+					spawn_floating_text(Vector2(world_x, world_y), 500)
+
+	for x in range(line_min, line_max + 1):
+		var is_perfect_col = true
+		var col_blocks = []
+		for y in range(line_min, line_max + 1):
+			var col_block = get_block_at_rel(x, y)
+			if col_block == null:
+				is_perfect_col = false
+				break
+			col_blocks.append(col_block)
+		if is_perfect_col:
+			for b in col_blocks:
+				if not b.get("is_gold", false):
+					b["is_gold"] = true
+					newly_gold = true
+					score += 500
+					var vp_size = get_viewport_rect().size
+					var center_x = vp_size.x / 2.0
+					var world_x = center_x + (b.x * GRID_SIZE) + (GRID_SIZE / 2.0)
+					var world_y = ((CENTER_Y + b.y) * GRID_SIZE) + (GRID_SIZE / 2.0)
 					spawn_floating_text(Vector2(world_x, world_y), 500)
 					
 	if newly_gold: 
