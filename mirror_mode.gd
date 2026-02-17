@@ -1,5 +1,12 @@
 extends "res://main_game.gd"
 
+@export var mirror_game_levels: Array[Resource] = []
+
+func _ready():
+	if not mirror_game_levels.is_empty():
+		game_levels = mirror_game_levels.duplicate(true)
+	super._ready()
+
 func _draw():
 	super._draw()
 
