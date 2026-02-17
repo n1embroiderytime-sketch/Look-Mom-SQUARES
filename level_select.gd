@@ -1,7 +1,5 @@
 extends Control
 
-@export var all_levels: Array[Resource] = []
-
 @onready var grid_classic = $MainMargin/LayoutList/SectionClassic/ContainerClassic/LevelRow
 @onready var grid_endless = $MainMargin/LayoutList/SectionEndless/ContainerEndless/LevelRow
 @onready var mirror_row = $MainMargin/LayoutList/SectionMirror/ContainerMirror/LevelRow
@@ -16,7 +14,7 @@ func _ready():
 	setup_mirror_mode()
 
 	var btn_back = find_child("BtnBack", true, false)
-	if btn_back and not btn_back.is_connected("pressed", _on_back_pressed):
+	if btn_back and not btn_back.pressed.is_connected(_on_back_pressed):
 		btn_back.pressed.connect(_on_back_pressed)
 
 func setup_endless_mode():
@@ -28,12 +26,9 @@ func setup_endless_mode():
 		endless_data_path = "res://Gamemodes/Endless/Level999.tres"
 	var endless_data = load(endless_data_path)
 
-	var save_id = 999
-	var display_id = 0
-	btn_endless.setup(display_id, endless_data, false, 0, true, Global.endless_high_score)
-
+	btn_endless.setup(0, endless_data, false, 0, true, Global.endless_high_score)
 	btn_endless.pressed.connect(func():
-		Global.selected_level = save_id
+		Global.selected_level = 999
 		get_tree().change_scene_to_file("res://endless_game.tscn")
 	)
 	btn_endless.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -57,8 +52,7 @@ func setup_mirror_mode():
 	var btn_mirror = preload("res://LevelButton.gd").new()
 	mirror_row.add_child(btn_mirror)
 
-	var mirror_data_path = "res://Gamemodes/Classic/Level001.tres"
-	var mirror_data = load(mirror_data_path)
+	var mirror_data = load("res://Gamemodes/Classic/Level001.tres")
 	btn_mirror.setup(0, mirror_data, false, 0)
 	btn_mirror.pressed.connect(func():
 		Global.selected_level = 0
