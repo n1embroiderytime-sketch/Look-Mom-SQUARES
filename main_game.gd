@@ -105,7 +105,7 @@ var shake_intensity = 0.0        # How much the screen is shaking
 var current_level_targets = []   # Where the gray target blocks are
 
 # Speed & Pause
-var current_fall_speed = 2.0     # How fast pieces fall
+var current_fall_speed = 1.4     # How fast pieces fall
 var is_game_paused = false       # Is the pause menu open?
 
 # Scoring
@@ -136,6 +136,12 @@ var flash_color = Color.WHITE
 var level_completed = false
 var visual_core_rotation = 0.0   # Current rotation angle (for smooth animation)
 var meta_ghost_opacity = 0.0
+
+# Post FX
+var post_fx_overlay = null
+var post_fx_material = null
+var touch_effect_timer = 0.0
+const TOUCH_EFFECT_DURATION = 0.35
 
 var grid_board = null
 var piece_mover = null
@@ -185,6 +191,8 @@ func _ready():
 	CENTER_Y = floor(ROWS * 0.65)
 	OFFSET_X = (vp_size.x - (COLS * GRID_SIZE)) / 2
 	sfx_connect = $SfxConnect
+	if sfx_connect:
+		sfx_connect.volume_db = Global.get_sfx_db()
 
 	grid_board = GridBoardScript.new()
 	add_child(grid_board)
@@ -198,6 +206,7 @@ func _ready():
 		
 	# Initialize Particle System
 	spawn_portal_particles()
+	setup_post_fx()
 
 	# Load the first level
 	if game_levels.is_empty(): return
@@ -229,6 +238,11 @@ func _process(delta):
 		visual_score = lerp(visual_score, float(score), 10.0 * delta)
 	else:
 		visual_score = float(score)
+
+	if touch_effect_timer > 0.0:
+		touch_effect_timer = max(0.0, touch_effect_timer - delta)
+		if post_fx_material:
+			post_fx_material.set_shader_parameter("touch_intensity", touch_effect_timer / TOUCH_EFFECT_DURATION)
 
 	# --- PAUSE CHECK ---
 	if is_game_paused: return
@@ -269,7 +283,7 @@ func _process(delta):
 # INPUT HANDLING
 # ==============================================================================
 func _input(event):
-	if is_hard_dropping: return 
+	if is_hard_dropping and not is_game_paused: return
 	
 	# 1. HANDLE PAUSE MENU CLICKS
 	if is_game_paused:
@@ -277,9 +291,24 @@ func _input(event):
 			if btn_p_resume.has_point(event.position):
 				toggle_pause()
 			elif btn_p_levels.has_point(event.position):
+				is_game_paused = false
+				get_viewport().set_input_as_handled()
 				get_tree().change_scene_to_file("res://level_select.tscn")
 			elif btn_p_settings.has_point(event.position):
-				print("Settings Clicked") # Placeholder
+				Global.settings_return_scene = "res://main_game.tscn"
+				is_game_paused = false
+				get_tree().change_scene_to_file("res://settings_menu.tscn")
+		if event is InputEventScreenTouch and event.pressed:
+			if btn_p_resume.has_point(event.position):
+				toggle_pause()
+			elif btn_p_levels.has_point(event.position):
+				is_game_paused = false
+				get_viewport().set_input_as_handled()
+				get_tree().change_scene_to_file("res://level_select.tscn")
+			elif btn_p_settings.has_point(event.position):
+				Global.settings_return_scene = "res://main_game.tscn"
+				is_game_paused = false
+				get_tree().change_scene_to_file("res://settings_menu.tscn")
 		return
 
 	# 2. HANDLE RESULTS SCREEN CLICKS
@@ -303,9 +332,16 @@ func _input(event):
 		if event.is_action("ui_down"): hard_drop(); get_viewport().set_input_as_handled()
 		if event.keycode == KEY_ESCAPE: toggle_pause()
 
-	# 4. TOUCH INPUTS
+	# 4. POINTER INPUTS (Mouse + Touch)
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		register_touch_shader_effect(event.position)
+		if btn_pause_rect.has_point(event.position):
+			toggle_pause()
+			return
+
 	if event is InputEventScreenTouch:
 		if event.pressed:
+			register_touch_shader_effect(event.position)
 			touch_start_pos = event.position
 			touch_start_time = Time.get_ticks_msec()
 			is_dragging = false
@@ -349,6 +385,55 @@ func _input(event):
 				var direction = sign(drag_accumulator_x)
 				handle_move(int(direction))
 				drag_accumulator_x -= (direction * threshold)
+
+
+func setup_post_fx():
+	var world_env = get_node_or_null("WorldEnvironment")
+	if world_env == null:
+		world_env = WorldEnvironment.new()
+		world_env.name = "WorldEnvironment"
+		add_child(world_env)
+		var env = Environment.new()
+		env.background_mode = Environment.BG_CANVAS
+		env.glow_enabled = true
+		env.glow_bloom = 0.08
+		env.glow_intensity = 0.6
+		env.glow_strength = 0.7
+		env.glow_hdr_threshold = 0.7
+		env.glow_hdr_scale = 1.1
+		env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
+		world_env.environment = env
+
+	if post_fx_overlay == null:
+		post_fx_overlay = ColorRect.new()
+		post_fx_overlay.name = "PostFxOverlay"
+		post_fx_overlay.color = Color(1, 1, 1, 1)
+		post_fx_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		post_fx_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+		post_fx_overlay.offset_left = 0
+		post_fx_overlay.offset_top = 0
+		post_fx_overlay.offset_right = 0
+		post_fx_overlay.offset_bottom = 0
+		post_fx_overlay.z_index = 5
+		add_child(post_fx_overlay)
+
+	if post_fx_material == null and ResourceLoader.exists("res://main_game.gdshader"):
+		post_fx_material = ShaderMaterial.new()
+		post_fx_material.shader = load("res://main_game.gdshader")
+		post_fx_overlay.material = post_fx_material
+		post_fx_material.set_shader_parameter("cell_size", float(GRID_SIZE))
+		post_fx_material.set_shader_parameter("touch_intensity", 0.0)
+
+func register_touch_shader_effect(pos):
+	if post_fx_material == null:
+		return
+	var vp_size = get_viewport_rect().size
+	if vp_size.x <= 0 or vp_size.y <= 0:
+		return
+	var uv = Vector2(pos.x / vp_size.x, pos.y / vp_size.y)
+	post_fx_material.set_shader_parameter("touch_center", uv)
+	touch_effect_timer = TOUCH_EFFECT_DURATION
+	post_fx_material.set_shader_parameter("touch_intensity", 1.0)
 
 func toggle_pause():
 	is_game_paused = !is_game_paused
@@ -474,8 +559,8 @@ func init_level(idx):
 # Difficulty Curve Formula
 func get_fall_speed_for_level(lvl):
 	if lvl < 5:
-		return 2.0
-	return 2.0 + ((lvl - 5) * 0.2)
+		return 1.4
+	return 1.4 + ((lvl - 5) * 0.15)
 
 func spawn_piece():
 	if level_completed or show_results_screen: return
@@ -513,6 +598,8 @@ func spawn_piece():
 func land_piece():
 	if level_completed or show_results_screen: return 
 	var gy = round(falling_piece.y)
+	if will_collide(falling_piece.x, gy, falling_piece.matrix):
+		handle_rejection(); return
 	
 	# 1. Validate placement
 	if not grid_board.piece_is_connected(falling_piece.x, gy, falling_piece.matrix): handle_rejection(); return
@@ -1035,8 +1122,38 @@ func rotate_piece(dir):
 		new_m = rotate_matrix_data(rotate_matrix_data(rotate_matrix_data(m)))
 	if not will_collide(falling_piece.x, falling_piece.y, new_m): falling_piece.matrix = new_m
 
+func can_rotate_core_without_piece_overlap(dir):
+	if falling_piece == null:
+		return true
+
+	var falling_cells = {}
+	for r in range(falling_piece.matrix.size()):
+		for c in range(falling_piece.matrix[r].size()):
+			if falling_piece.matrix[r][c] == 1:
+				var ax = falling_piece.x + c
+				var ay = int(floor(falling_piece.y + r + 0.5))
+				if ay >= 0:
+					falling_cells[str(ax) + "," + str(ay)] = true
+
+	for b in cluster:
+		var nx
+		var ny
+		if dir == 1:
+			nx = -b.y - 1
+			ny = b.x
+		else:
+			nx = b.y
+			ny = -b.x - 1
+		var abs_x = CENTER_X + nx
+		var abs_y = CENTER_Y + ny
+		if falling_cells.has(str(abs_x) + "," + str(abs_y)):
+			return false
+
+	return true
+
 func rotate_core(dir):
 	if level_completed or show_results_screen: return
+	if not can_rotate_core_without_piece_overlap(dir): return
 	if not grid_board.rotate_core(dir): return
 
 	cluster = grid_board.cluster
