@@ -54,6 +54,10 @@ const COLOR_TARGET = Color("4c566a")
 const COLOR_UI_BTN = Color("2e3440")    
 const COLOR_UI_BTN_ACTIVE = Color("434c5e")
 
+const RESULT_PANEL_BUTTON_SIZE = Vector2(200, 50)
+const PAUSE_MENU_BUTTON_SIZE = Vector2(220, 50)
+const PAUSE_MENU_BUTTON_GAP = 70
+
 var THEME_COLORS = [
 	Color("bf616a"), Color("a3be8c"), Color("81a1c1")
 ]
@@ -1489,22 +1493,18 @@ func _draw():
 			draw_rect(star_rect, star_col, true)
 			draw_rect(star_rect, Color.WHITE, false, 2.0) 
 		
-		var pop_btn_w = 200; var pop_btn_h = 50; 
-		var pop_btn_x = (vp_size.x - pop_btn_w) / 2
+		var pop_btn_x = (vp_size.x - RESULT_PANEL_BUTTON_SIZE.x) / 2
 		
-		btn_retry_rect = Rect2(pop_btn_x, panel_rect.end.y - 130, pop_btn_w, pop_btn_h)
-		draw_rect(btn_retry_rect, Color("bf616a"), true) 
-		draw_string(ThemeDB.fallback_font, btn_retry_rect.position + Vector2(80, 32), "RETRY", HORIZONTAL_ALIGNMENT_CENTER, -1, 20, Color.WHITE)
+		btn_retry_rect = Rect2(pop_btn_x, panel_rect.end.y - 130, RESULT_PANEL_BUTTON_SIZE.x, RESULT_PANEL_BUTTON_SIZE.y)
+		draw_labeled_button(btn_retry_rect, "RETRY", Color("bf616a"), Color.WHITE, 20)
 
 		if result_state == "WIN":
-			btn_next_rect = Rect2(pop_btn_x, panel_rect.end.y - 70, pop_btn_w, pop_btn_h)
-			draw_rect(btn_next_rect, Color("a3be8c"), true) 
-			draw_string(ThemeDB.fallback_font, btn_next_rect.position + Vector2(80, 32), "NEXT", HORIZONTAL_ALIGNMENT_CENTER, -1, 20, Color.WHITE)
+			btn_next_rect = Rect2(pop_btn_x, panel_rect.end.y - 70, RESULT_PANEL_BUTTON_SIZE.x, RESULT_PANEL_BUTTON_SIZE.y)
+			draw_labeled_button(btn_next_rect, "NEXT", Color("a3be8c"), Color.WHITE, 20)
 		
 		elif result_state == "LOSE" and consecutive_failures >= 3:
-			btn_skip_rect = Rect2(pop_btn_x, panel_rect.end.y - 70, pop_btn_w, pop_btn_h)
-			draw_rect(btn_skip_rect, Color("ebcb8b"), true) 
-			draw_string(ThemeDB.fallback_font, btn_skip_rect.position + Vector2(80, 32), "SKIP >", HORIZONTAL_ALIGNMENT_CENTER, -1, 20, Color("2e3440"))
+			btn_skip_rect = Rect2(pop_btn_x, panel_rect.end.y - 70, RESULT_PANEL_BUTTON_SIZE.x, RESULT_PANEL_BUTTON_SIZE.y)
+			draw_labeled_button(btn_skip_rect, "SKIP >", Color("ebcb8b"), Color("2e3440"), 20)
 
 # ==============================================================================
 # [UI] DRAWING HELPERS
@@ -1632,24 +1632,17 @@ func draw_pause_menu(vp):
 	draw_string(font_to_use, Vector2(x + w/2 - 40, y + 50), "PAUSED", HORIZONTAL_ALIGNMENT_CENTER, -1, 32, Color.WHITE)
 	
 	# Buttons
-	var btn_w = 220
-	var btn_h = 50; var btn_x = x + (w - btn_w) / 2
-	var start_y = y + 100; var gap = 70
-	
-	# Resume
-	btn_p_resume = Rect2(btn_x, start_y, btn_w, btn_h)
-	draw_rect(btn_p_resume, Color("a3be8c"), true)
-	draw_string(font_to_use, Vector2(btn_x + 60, start_y + 35), "RESUME", HORIZONTAL_ALIGNMENT_CENTER, -1, 24, Color.WHITE)
-	
-	# Levels
-	btn_p_levels = Rect2(btn_x, start_y + gap, btn_w, btn_h)
-	draw_rect(btn_p_levels, Color("5e81ac"), true)
-	draw_string(font_to_use, Vector2(btn_x + 30, start_y + gap + 35), "LEVEL SELECT", HORIZONTAL_ALIGNMENT_CENTER, -1, 24, Color.WHITE)
-	
-	# Settings
-	btn_p_settings = Rect2(btn_x, start_y + gap*2, btn_w, btn_h)
-	draw_rect(btn_p_settings, Color("4c566a"), true)
-	draw_string(font_to_use, Vector2(btn_x + 50, start_y + gap*2 + 35), "SETTINGS", HORIZONTAL_ALIGNMENT_CENTER, -1, 24, Color.LIGHT_GRAY)
+	var btn_x = x + (w - PAUSE_MENU_BUTTON_SIZE.x) / 2
+	var start_y = y + 100
+
+	btn_p_resume = Rect2(btn_x, start_y, PAUSE_MENU_BUTTON_SIZE.x, PAUSE_MENU_BUTTON_SIZE.y)
+	draw_labeled_button(btn_p_resume, "RESUME", Color("a3be8c"), Color.WHITE, 24, font_to_use)
+
+	btn_p_levels = Rect2(btn_x, start_y + PAUSE_MENU_BUTTON_GAP, PAUSE_MENU_BUTTON_SIZE.x, PAUSE_MENU_BUTTON_SIZE.y)
+	draw_labeled_button(btn_p_levels, "LEVEL SELECT", Color("5e81ac"), Color.WHITE, 24, font_to_use)
+
+	btn_p_settings = Rect2(btn_x, start_y + (PAUSE_MENU_BUTTON_GAP * 2), PAUSE_MENU_BUTTON_SIZE.x, PAUSE_MENU_BUTTON_SIZE.y)
+	draw_labeled_button(btn_p_settings, "SETTINGS", Color("4c566a"), Color.LIGHT_GRAY, 24, font_to_use)
 
 # Helper for drawing blocks
 func draw_tech_block(x, y, color, is_active):
@@ -1660,9 +1653,12 @@ func draw_tech_block(x, y, color, is_active):
 	draw_rect(rect, color, false, thickness)
 	if is_active: draw_rect(rect, Color(1, 1, 1, 0.1), true)
 
-func save_state():
-	pass
-	
+func draw_labeled_button(rect: Rect2, label: String, fill_color: Color, text_color: Color, font_size: int, font_override = null):
+	var font_to_use = font_override if font_override != null else ThemeDB.fallback_font
+	draw_rect(rect, fill_color, true)
+	var baseline_y = rect.position.y + (rect.size.y * 0.68)
+	draw_string(font_to_use, Vector2(rect.position.x, baseline_y), label, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, font_size, text_color)
+
 # Helper for gradient (placeholder for now)
 func draw_gradient_overlay(vp, active_color):
 	return
